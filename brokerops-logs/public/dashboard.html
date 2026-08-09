@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Log Tracker · BrokerOps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+<style>
+  .page{ position:relative; z-index:1; min-height:100vh; display:flex; flex-direction:column; }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 32px;
+    border-bottom:1px solid var(--border);
+    background:var(--bg-elevated);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{
+    width:32px; height:32px; border-radius:8px;
+    background:var(--accent-soft);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .brand-name{ font-family:var(--font-display); font-weight:600; font-size:15.5px; }
+  .brand-name span{ color:var(--accent); }
+  .back-link{
+    font-size:12.5px; color:var(--text-muted);
+    display:flex; align-items:center; gap:6px;
+    padding-left:14px; border-left:1px solid var(--border);
+  }
+  .back-link:hover{ color:var(--text); }
+
+  .topbar-right{ display:flex; align-items:center; gap:14px; }
+  .user-chip{
+    display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted);
+    border-left:1px solid var(--border); padding-left:14px;
+  }
+  .avatar{
+    width:26px; height:26px; border-radius:50%; background:var(--accent); color:#04231A;
+    font-family:var(--font-mono); font-weight:600; font-size:11px;
+    display:flex; align-items:center; justify-content:center; text-transform:uppercase;
+  }
+  .role-badge{
+    font-family:var(--font-mono); font-size:10.5px; padding:3px 8px; border-radius:5px;
+    border:1px solid var(--border); text-transform:uppercase; letter-spacing:.04em;
+  }
+  .role-badge.admin{ color:var(--accent); border-color:var(--accent-dim); }
+  .logout-btn{
+    background:transparent; border:1px solid var(--border); color:var(--text-muted);
+    font-size:12.5px; padding:7px 13px; border-radius:var(--radius); transition:all .15s ease;
+  }
+  .logout-btn:hover{ border-color:var(--danger); color:var(--danger); }
+
+  main{ flex:1; max-width:940px; width:100%; margin:0 auto; padding:44px 32px 60px; }
+
+  .page-head h1{ font-family:var(--font-display); font-weight:600; font-size:26px; margin:0 0 6px; }
+  .page-head p{ color:var(--text-muted); font-size:13.5px; margin:0 0 32px; }
+
+  .stat-row{ display:flex; gap:16px; margin-bottom:28px; }
+  .stat-card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:18px 22px; min-width:160px;
+  }
+  .stat-num{ font-family:var(--font-mono); font-size:26px; font-weight:600; color:var(--accent); }
+  .stat-label{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-faint); margin-top:2px; }
+
+  .panel{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:24px; margin-bottom:24px;
+  }
+  .panel h2{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--text-faint); margin:0 0 18px;
+  }
+
+  .field{ margin-bottom:0; }
+  .field label{
+    display:block; font-family:var(--font-mono); font-size:11px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--text-faint); margin-bottom:7px;
+  }
+  input, textarea{
+    width:100%; background:var(--bg-elevated); border:1px solid var(--border);
+    border-radius:var(--radius); padding:10px 12px; font-size:14px; color:var(--text);
+    font-family:var(--font-body); transition:border-color .15s ease;
+  }
+  input:focus, textarea:focus{ border-color:var(--accent); outline:none; }
+  input[readonly]{ color:var(--text-muted); border-style:dashed; }
+  textarea{ resize:vertical; min-height:70px; }
+
+  .new-ticket-row{ display:grid; grid-template-columns:1fr 1fr auto; gap:14px; align-items:end; }
+  @media (max-width:640px){ .new-ticket-row{ grid-template-columns:1fr; } }
+
+  button{ font-family:var(--font-body); cursor:pointer; border-radius:var(--radius); font-size:13px; font-weight:600; padding:10px 18px; border:none; transition:filter .12s ease, background .15s ease; }
+  button:disabled{ opacity:.45; cursor:not-allowed; }
+  .btn-primary{ background:var(--accent); color:#04231A; }
+  .btn-primary:hover:not(:disabled){ background:#3EE0B8; }
+  .btn-ghost{ background:transparent; border:1px solid var(--border); color:var(--text-muted); }
+  .btn-ghost:hover:not(:disabled){ border-color:var(--border-strong); color:var(--text); }
+  .btn-done{ background:var(--accent); color:#04231A; }
+
+  .error-text{ color:var(--danger); font-size:12.5px; min-height:16px; margin-top:10px; }
+
+  /* ticket rows */
+  .ticket-row{
+    display:flex; gap:16px; padding:18px; border:1px solid var(--border);
+    border-left:3px solid var(--accent); border-radius:var(--radius); background:var(--bg-elevated);
+    margin-bottom:12px;
+  }
+  .ticket-row.done{ border-left-color:var(--text-faint); }
+  .ticket-main{ flex:1; min-width:0; }
+  .ticket-top{ display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
+  .ticket-number{ font-family:var(--font-mono); font-size:14.5px; font-weight:600; }
+  .ticket-owner{ font-size:12px; color:var(--text-muted); }
+  .ticket-owner b{ color:var(--text); font-weight:500; }
+
+  .path-line{
+    display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:12px;
+    color:var(--text-muted); background:var(--bg); border:1px solid var(--border);
+    border-radius:6px; padding:7px 10px; margin:8px 0; overflow-x:auto; white-space:nowrap;
+  }
+  .path-line .prompt{ color:var(--accent); }
+  .path-line button{ margin-left:auto; padding:3px 10px; font-size:10.5px; flex-shrink:0; }
+
+  .file-chip-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .file-chip{
+    font-family:var(--font-mono); font-size:11px; background:var(--bg); border:1px solid var(--border);
+    border-radius:4px; padding:3px 8px; color:var(--text-muted);
+  }
+
+  .ticket-actions{ display:flex; flex-direction:column; gap:8px; align-items:flex-end; flex-shrink:0; min-width:150px; }
+  .upload-label{
+    display:inline-block; font-size:12px; padding:9px 14px; border:1px solid var(--border);
+    border-radius:var(--radius); color:var(--text-muted); cursor:pointer; text-align:center;
+  }
+  .upload-label:hover{ border-color:var(--border-strong); color:var(--text); }
+  .upload-label input{ display:none; }
+
+  .notes-block{ margin-top:10px; font-size:12.5px; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:8px; }
+  .notes-block b{ color:var(--text); }
+
+  .empty-state{ text-align:center; padding:40px 20px; color:var(--text-faint); font-size:13px; }
+
+  .search-row{ display:flex; gap:10px; }
+  .search-row input{ flex:1; }
+
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(6,9,11,.7);
+    display:flex; align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .modal-card{ width:100%; max-width:440px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; }
+  .modal-card h3{ font-family:var(--font-display); margin:0 0 4px; font-size:16px; }
+  .modal-card .sub{ color:var(--text-muted); font-size:12.5px; margin:0 0 18px; font-family:var(--font-mono); }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="page">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M3 17L9 11L13 15L21 7" stroke="#22D3A8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 7H21V13" stroke="#22D3A8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-name">Broker<span>Ops</span></div>
+        <a class="back-link" href="home.html">← Dashboard</a>
+      </div>
+      <div class="topbar-right">
+        <div class="user-chip">
+          <div class="avatar" id="avatarLetter">-</div>
+          <span id="whoami">—</span>
+        </div>
+        <span class="role-badge" id="roleBadge"></span>
+        <button class="logout-btn" id="logoutBtn">Log out</button>
+      </div>
+    </div>
+
+    <main>
+      <div class="page-head">
+        <h1>Log Tracker</h1>
+        <p>Open a ticket, drop the case's log files, and mark it done once analysis is complete.</p>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-num" id="pendingCount">—</div>
+          <div class="stat-label">Pending tickets</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Open a new ticket</h2>
+        <form id="newTicketForm" class="new-ticket-row">
+          <div class="field">
+            <label for="ticketNumber">Ticket number</label>
+            <input id="ticketNumber" placeholder="e.g. TCK-10231" required />
+          </div>
+          <div class="field">
+            <label for="ownerName">Your name (from login)</label>
+            <input id="ownerName" readonly />
+          </div>
+          <button type="submit" class="btn-primary">Create ticket</button>
+        </form>
+        <p class="error-text" id="newTicketError"></p>
+      </div>
+
+      <div class="panel" id="adminSearchPanel" style="display:none">
+        <h2>Look up a closed ticket</h2>
+        <div class="search-row">
+          <input id="searchTicketNumber" placeholder="Ticket number, e.g. TCK-10201" />
+          <button class="btn-ghost" id="searchBtn">Search</button>
+        </div>
+        <div id="searchResult"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Pending queue</h2>
+        <div id="ticketList"></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="markDoneModal">
+    <div class="modal-card">
+      <h3>Mark ticket done</h3>
+      <p class="sub" id="markDoneTicketNumber"></p>
+      <div class="field" style="margin-bottom:16px">
+        <label for="doneNotes">Analysis notes (required)</label>
+        <textarea id="doneNotes" placeholder="What did the log analysis find? What was done?"></textarea>
+      </div>
+      <p class="error-text" id="markDoneError"></p>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="markDoneCancel">Cancel</button>
+        <button class="btn-done" id="markDoneConfirm" disabled>Mark done</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
