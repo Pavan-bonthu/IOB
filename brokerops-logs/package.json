@@ -1,15 +1,15 @@
 {
-  "name": "brokerops-logs",
+  "name": "IOB-logs",
   "version": "1.0.0",
-  "description": "BrokerOps ticket log tracker - login, ticket queue, per-ticket file storage on the Linux server",
+  "description": "IOB ticket log tracker - login, ticket queue, per-ticket file storage on the Linux server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "dotenv": "^16.6.1",
     "express": "^4.19.2",
     "express-session": "^1.18.0",
-    "multer": "^2.0.0",
-    "dotenv": "^16.4.5"
+    "multer": "^2.0.0"
   }
 }

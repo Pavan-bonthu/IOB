@@ -14,7 +14,7 @@ const APP_LINKS = {
    Session key (client-side mirror, used for UI only)
    ========================================================= */
 
-const SESSION_KEY = "brokerops_session";
+const SESSION_KEY = "IOB_session";
 
 
 /* =========================================================

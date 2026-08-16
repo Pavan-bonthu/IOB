@@ -38,6 +38,6 @@ app.get("*", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`BrokerOps logs server running on http://localhost:${PORT}`);
+  console.log(`IOB logs server running on http://localhost:${PORT}`);
   console.log(`Ticket folders will be created under: ${process.env.LOGS_BASE_PATH || "/else"}`);
 });

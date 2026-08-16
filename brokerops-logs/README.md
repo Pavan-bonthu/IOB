@@ -1,4 +1,4 @@
-# BrokerOps Log Tracker
+# IOB Log Tracker
 
 Your existing login → home dashboard → Log Tracker flow, now wired together
 as one app: one sign-in, no second login screen. Log in, open a ticket,
@@ -53,11 +53,11 @@ Node.js + SSH/sudo is available — do this over PuTTY:
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
-# 2. Copy this whole brokerops-logs/ folder onto the server, e.g. via scp
-#    (from your own machine): scp -r brokerops-logs user@103.138.137.170:/opt/
+# 2. Copy this whole IOB-logs/ folder onto the server, e.g. via scp
+#    (from your own machine): scp -r IOB-logs user@103.138.137.170:/opt/
 
 # 3. On the server:
-cd /opt/brokerops-logs
+cd /opt/IOB-logs
 npm install --production
 
 # 4. Configure
@@ -86,7 +86,7 @@ Tracker → you're straight into `dashboard.html`, still signed in.
 
 ```bash
 sudo npm install -g pm2
-pm2 start server.js --name brokerops-logs
+pm2 start server.js --name IOB-logs
 pm2 save
 pm2 startup   # follow the printed instructions so it survives a reboot
 ```
